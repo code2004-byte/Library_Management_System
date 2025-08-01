@@ -1,51 +1,168 @@
-**🔍 Introduction**
-The Library Management System is a simple Java console application designed to automate basic library operations such as managing books and members, issuing books, and tracking returns. This system streamlines the manual process of library management and ensures efficient handling of records.
+import java.util.*;
 
-**🎯 Objective:**
-The primary objective of the system is to:
+public class LibrarySystem {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        Library library = new Library();
 
-Maintain a list of books and members.
+        while (true) {
+            System.out.println("\n========== Library Menu ==========");
+            System.out.println("1. Add Book");
+            System.out.println("2. Register Member");
+            System.out.println("3. Issue Book");
+            System.out.println("4. Return Book");
+            System.out.println("5. View Available Books");
+            System.out.println("6. Exit");
+            System.out.print("Enter choice: ");
+            
+            int choice;
+            try {
+                choice = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Please enter a valid number.");
+                continue;
+            }
 
-Enable easy book issuance and return.
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter Book ID: ");
+                    int bookId = Integer.parseInt(scanner.nextLine());
+                    System.out.print("Enter Title: ");
+                    String title = scanner.nextLine();
+                    System.out.print("Enter Author: ");
+                    String author = scanner.nextLine();
+                    library.addBook(new Book(bookId, title, author));
+                    break;
 
-Track the availability of books.
+                case 2:
+                    System.out.print("Enter Member ID: ");
+                    int memberId = Integer.parseInt(scanner.nextLine());
+                    System.out.print("Enter Member Name: ");
+                    String name = scanner.nextLine();
+                    library.registerMember(new Member(memberId, name));
+                    break;
 
-Provide a simple user interface through the command-line menu.
+                case 3:
+                    System.out.print("Enter Book ID: ");
+                    int issueBookId = Integer.parseInt(scanner.nextLine());
+                    System.out.print("Enter Member ID: ");
+                    int issueMemberId = Integer.parseInt(scanner.nextLine());
+                    library.issueBook(issueBookId, issueMemberId);
+                    break;
 
-**🛠️ Key Features**
-Add Book: Allows the librarian to add new books with unique IDs, titles, and authors.
+                case 4:
+                    System.out.print("Enter Book ID to return: ");
+                    int returnBookId = Integer.parseInt(scanner.nextLine());
+                    library.returnBook(returnBookId);
+                    break;
 
-Register Member: Enables the registration of new members by assigning them an ID and name.
+                case 5:
+                    library.listAvailableBooks();
+                    break;
 
-Issue Book: Facilitates issuing books to registered members while checking for availability.
+                case 6:
+                    System.out.println("👋 Exiting the system. Goodbye!");
+                    scanner.close();
+                    return;
 
-Return Book: Handles the return of previously issued books and updates their status.
+                default:
+                    System.out.println("❌ Invalid choice. Try again.");
+            }
+        }
+    }
+}
 
-View Available Books: Lists all books that are currently not issued.
+class Book {
+    int id;
+    String title;
+    String author;
+    boolean isIssued;
 
-Exit System: Terminates the application safely.
+    Book(int id, String title, String author) {
+        this.id = id;
+        this.title = title;
+        this.author = author;
+        this.isIssued = false;
+    }
+}
 
-**🧱 System Components**
-Book Class: Represents a book with properties like id, title, author, and isIssued status.
+class Member {
+    int id;
+    String name;
 
-Member Class: Represents a library member with id and name.
+    Member(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+}
 
-Library Class: Manages collections of books and members using List and Map, and contains methods to perform all operations.
+class Library {
+    List<Book> books = new ArrayList<>();
+    Map<Integer, Member> members = new HashMap<>();
 
-Main Class: Provides a menu-driven interface to interact with the user and call respective library operations.
+    void addBook(Book book) {
+        books.add(book);
+        System.out.println("✅ Book added: " + book.title);
+    }
 
-**💻 Technology Stack**
-Language: Java
+    void registerMember(Member member) {
+        members.put(member.id, member);
+        System.out.println("✅ Member registered: " + member.name);
+    }
 
-Input/Output: Java Scanner for user input
+    void issueBook(int bookId, int memberId) {
+        Book bookToIssue = null;
+        for (Book book : books) {
+            if (book.id == bookId) {
+                bookToIssue = book;
+                break;
+            }
+        }
 
-Data Structures: ArrayList for books, HashMap for member data storage
+        if (bookToIssue == null) {
+            System.out.println("❌ Book not found.");
+            return;
+        }
 
-**✅ Advantages**
-Easy to use for small to medium libraries.
+        if (!members.containsKey(memberId)) {
+            System.out.println("❌ Member not found.");
+            return;
+        }
 
-Modular design with separate responsibilities for each class.
+        if (bookToIssue.isIssued) {
+            System.out.println("❌ Book is already issued.");
+        } else {
+            bookToIssue.isIssued = true;
+            System.out.println("✅ Book issued to " + members.get(memberId).name);
+        }
+    }
 
-Prevents double issuance of books.
+    void returnBook(int bookId) {
+        for (Book book : books) {
+            if (book.id == bookId) {
+                if (book.isIssued) {
+                    book.isIssued = false;
+                    System.out.println("✅ Book returned: " + book.title);
+                } else {
+                    System.out.println("❌ This book was not issued.");
+                }
+                return;
+            }
+        }
+        System.out.println("❌ Book not found.");
+    }
 
-Real-time updates of book availability.
+    void listAvailableBooks() {
+        System.out.println("📚 Available Books:");
+        boolean found = false;
+        for (Book book : books) {
+            if (!book.isIssued) {
+                System.out.println(" - " + book.id + ": " + book.title + " by " + book.author);
+                found = true;
+            }
+        }
+        if (!found) {
+            System.out.println("❌ No available books.");
+        }
+    }
+}
